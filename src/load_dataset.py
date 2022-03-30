@@ -37,12 +37,14 @@ labels_map = {
 train_dataloader = DataLoader(training_data, batch_size=64, shuffle=True)
 test_dataloader = DataLoader(test_data, batch_size=64, shuffle=True)
 model = NeuralNetwork().cuda()
-optimizer = torch.optim.SGD(model.parameters(), lr=0.0005)
+optimizer = torch.optim.SGD(model.parameters(), lr=0.05)
+scheduler = torch.optim.lr_scheduler.ExponentialLR(optimizer,gamma=0.1)
 
 
 
 def train_loop(dataloader, model:NeuralNetwork, optimizer):
     size = len(dataloader.dataset)
+    print(f'LR: {scheduler.get_lr()}')
     for batch, (imgs, classes) in enumerate(dataloader):
         imgs = imgs.cuda()
         classes = classes.cuda()
@@ -58,6 +60,7 @@ def train_loop(dataloader, model:NeuralNetwork, optimizer):
         if batch % 100 == 0:
             loss, current = loss.item(), batch * len(imgs)
             print(f"loss: {loss:>7f}  [{current:>5d}/{size:>5d}]")
+    scheduler.step()
 
 
 def test_loop(dataloader, model:NeuralNetwork):
@@ -76,6 +79,8 @@ def test_loop(dataloader, model:NeuralNetwork):
     correct /= size
     print(f"Test Error: \n Accuracy: {(100*correct):>0.1f}%\n")
 
-for i in range(20):
+for i in range(50):
     train_loop(train_dataloader,model,optimizer)
+    if i%4 == 0 and i > 0:
+        scheduler.step()
     test_loop(test_dataloader,model)
