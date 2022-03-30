@@ -2,7 +2,6 @@ import torch
 from torch.utils.data import Dataset
 from torchvision import datasets
 from torchvision.transforms import ToTensor
-import matplotlib.pyplot as plt
 from torch.utils.data import DataLoader
 from neural_network import NeuralNetwork
 import torch.nn.functional as F
@@ -37,13 +36,16 @@ labels_map = {
 
 train_dataloader = DataLoader(training_data, batch_size=64, shuffle=True)
 test_dataloader = DataLoader(test_data, batch_size=64, shuffle=True)
-model = NeuralNetwork()
+model = NeuralNetwork().cuda()
 optimizer = torch.optim.SGD(model.parameters(), lr=0.0005)
+
 
 
 def train_loop(dataloader, model:NeuralNetwork, optimizer):
     size = len(dataloader.dataset)
     for batch, (imgs, classes) in enumerate(dataloader):
+        imgs = imgs.cuda()
+        classes = classes.cuda()
         # Compute prediction and loss
         classes = F.one_hot(classes,len(labels_map)).float()
         pred = model(imgs)
@@ -65,6 +67,8 @@ def test_loop(dataloader, model:NeuralNetwork):
 
     with torch.no_grad():
         for X, y in dataloader:
+            X = X.cuda()
+            y = y.cuda()
             pred = model(X)
             pred = model.parse_predictions(pred)
             correct += (pred == y).type(torch.float).sum().item()
@@ -72,6 +76,6 @@ def test_loop(dataloader, model:NeuralNetwork):
     correct /= size
     print(f"Test Error: \n Accuracy: {(100*correct):>0.1f}%\n")
 
-for i in range(10):
+for i in range(20):
     train_loop(train_dataloader,model,optimizer)
     test_loop(test_dataloader,model)
