@@ -60,7 +60,6 @@ def train_loop(dataloader, model:NeuralNetwork, optimizer):
         if batch % 100 == 0:
             loss, current = loss.item(), batch * len(imgs)
             print(f"loss: {loss:>7f}  [{current:>5d}/{size:>5d}]")
-    scheduler.step()
 
 
 def test_loop(dataloader, model:NeuralNetwork):
